@@ -57,7 +57,9 @@ func (k *kratosMiddleware) validateSession(r *http.Request) (*client.Session, er
 		fmt.Print("No session found in cookie")
 		return nil, errors.New("no session found in cookie")
 	}
-	resp, _, err := k.client.V0alpha2Api.ToSession(context.Background()).Cookie(cookie.String()).Execute()
+	//fmt.Printf("Cookie: %s\n", cookie.String())
+	fmt.Printf("Cookie: ASDFASDFASDFASDFASFD")
+	resp, _, err := k.client.V0alpha2Api.ToSession(context.Background()).XSessionToken("asdfasdfasdfasf").Execute() //cookie.String()).Execute() //was cookie
 
 	if err != nil {
 		fmt.Printf("Verfying session error: %s\n", err)
@@ -83,5 +85,6 @@ func main() {
 			"message": "bar",
 		})
 	})
+	fmt.Println("v0.0.2")
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
