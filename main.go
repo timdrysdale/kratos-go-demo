@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ func NewMiddleware() *kratosMiddleware {
 	configuration := client.NewConfiguration()
 	configuration.Servers = []client.ServerConfiguration{
 		{
-			URL: "http://127.0.0.1:4433", // Kratos Admin API
+			URL: "http://ory-quickstart-kratos-admin.default.svc.cluster.local", // Kratos Admin API
 		},
 	}
 	return &kratosMiddleware{
@@ -29,13 +30,13 @@ func (k *kratosMiddleware) Session() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session, err := k.validateSession(c.Request)
 		if err != nil {
-			c.Redirect(http.StatusMovedPermanently, "https://core.prac.io/accounts/login")
+			c.Redirect(http.StatusFound, "https://core.prac.io/accounts/login")
 			c.Abort()
 			return
 		}
 
 		if !*session.Active { //if session is not active, we need to login again
-			c.Redirect(http.StatusMovedPermanently, "https://core.prac.io/accounts/login")
+			c.Redirect(http.StatusFound, "https://core.prac.io/accounts/login")
 			c.Abort()
 			return
 		}
@@ -48,17 +49,21 @@ func (k *kratosMiddleware) validateSession(r *http.Request) (*client.Session, er
 
 	cookie, err := r.Cookie("ory_kratos_session")
 	if err != nil {
+		fmt.Printf("Retrieve cookie error: %s\n", err)
 		return nil, err
 	}
 
 	if cookie == nil {
+		fmt.Print("No session found in cookie")
 		return nil, errors.New("no session found in cookie")
 	}
 	resp, _, err := k.client.V0alpha2Api.ToSession(context.Background()).Cookie(cookie.String()).Execute()
 
 	if err != nil {
+		fmt.Printf("Verfying session error: %s\n", err)
 		return nil, err
 	}
+	fmt.Printf("Found session: %+v\n", (*resp))
 	return resp, nil
 }
 

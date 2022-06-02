@@ -14,6 +14,6 @@ RUN go build -o /pingbar
 
 EXPOSE 8080
 
-ENV GIN_MODE=release
+# ENV GIN_MODE=release
 
 CMD [ "/pingbar" ]
