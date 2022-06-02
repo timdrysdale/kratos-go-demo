@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pingbar-service
+spec:
+  selector:
+    app: pingbar-service
+  ports:
+  - name: api
+    port: 8080
+    targetPort: api-port
+
+--- 
+apiVersion: apps/v1
+kind: Deployment  
+metadata:
+  creationTimestamp: null
+  labels:
+    app: pingbar-service
+  name: pingbar-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pingbar-service
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pingbar-service
+    spec:
+      containers:
+      - image: practable/core-prac-io:pingbar-0.0
+        name: relay
+        ports:
+        - containerPort: 8080
+          name: api-port
+      
+status: {}
