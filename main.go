@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/kratos-client-go"
@@ -18,9 +20,14 @@ func NewMiddleware() *kratosMiddleware {
 	configuration := client.NewConfiguration()
 	configuration.Servers = []client.ServerConfiguration{
 		{
-			URL: "http://ory-quickstart-kratos-admin.default.svc.cluster.local", // Kratos Admin API
+			URL: "http://ory-quickstart-kratos-public.default.svc.cluster.local", // was Kratos Admin API
 		},
 	}
+
+	// from https://github.com/ory/kratos/blob/cf63a1c14bef86bbb0f0105453677c92cc9c947e/examples/go/pkg/common.go#L28
+	cj, _ := cookiejar.New(nil)
+	configuration.HTTPClient = &http.Client{Jar: cj}
+
 	return &kratosMiddleware{
 		client: client.NewAPIClient(configuration),
 	}
@@ -58,8 +65,24 @@ func (k *kratosMiddleware) validateSession(r *http.Request) (*client.Session, er
 		return nil, errors.New("no session found in cookie")
 	}
 	//fmt.Printf("Cookie: %s\n", cookie.String())
-	fmt.Printf("Cookie: ASDFASDFASDFASDFASFD")
-	resp, _, err := k.client.V0alpha2Api.ToSession(context.Background()).XSessionToken("asdfasdfasdfasf").Execute() //cookie.String()).Execute() //was cookie
+
+	//allCookie := cookie.String()
+	//bareCookie := allCookie[19:len(allCookie)]
+	//fmt.Printf("Cookie: %s\n", allCookie)
+	//fmt.Printf(" Token:                     %s\n", bareCookie)
+	//strip ory_kratos_session
+
+	cookies := make([]string, 0)
+
+	for _, c := range r.Cookies() {
+		cookies = append(cookies, c.String())
+	}
+
+	joinedCookies := strings.Join(cookies[:], "; ")
+
+	fmt.Printf("Joined Cookies: %s\n", joinedCookies)
+
+	resp, _, err := k.client.V0alpha2Api.ToSession(context.Background()).Cookie(joinedCookies).Execute() //was cookie
 
 	if err != nil {
 		fmt.Printf("Verfying session error: %s\n", err)
@@ -85,6 +108,6 @@ func main() {
 			"message": "bar",
 		})
 	})
-	fmt.Println("v0.0.2")
+	fmt.Println("v0.0.9")
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
