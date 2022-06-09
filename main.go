@@ -64,13 +64,6 @@ func (k *kratosMiddleware) validateSession(r *http.Request) (*client.Session, er
 		fmt.Print("No session found in cookie")
 		return nil, errors.New("no session found in cookie")
 	}
-	//fmt.Printf("Cookie: %s\n", cookie.String())
-
-	//allCookie := cookie.String()
-	//bareCookie := allCookie[19:len(allCookie)]
-	//fmt.Printf("Cookie: %s\n", allCookie)
-	//fmt.Printf(" Token:                     %s\n", bareCookie)
-	//strip ory_kratos_session
 
 	cookies := make([]string, 0)
 
@@ -95,9 +88,9 @@ func (k *kratosMiddleware) validateSession(r *http.Request) (*client.Session, er
 func main() {
 
 	r := gin.Default()
-	k := NewMiddleware()
+	//k := NewMiddleware()
 
-	r.Use(k.Session())
+	//r.Use(k.Session())
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
